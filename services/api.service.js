@@ -1,5 +1,6 @@
 import {DICTIONARY, getKeyValue} from "./storage.service.js";
 import axios from "axios";
+import {printError} from "./log.service.js";
 
 const getToken = async () => {
   const token = await getKeyValue(DICTIONARY.token);
@@ -37,6 +38,13 @@ export const getCoordinate = async (city) => {
       appid: token
     }
   })
+
+  if (!data.length) {
+    return {
+      lat: undefined,
+      lon: undefined
+    }
+  }
 
   return {
     lat: data[0].lat,
