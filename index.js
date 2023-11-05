@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 import { getArgs } from './helpers/args.js'
-import {printError, printHelp, printSuccess} from "./services/log.service.js";
-import {DICTIONARY, getKeyValue, saveKeyValue} from "./services/storage.service.js";
-import {getCoordinate, getWeather} from "./services/api.service.js";
+import {printError, printHelp, printSuccess, printWeather} from "./services/log.service.js";
+import { DICTIONARY, saveKeyValue } from "./services/storage.service.js";
+import {getIcon, getWeather} from "./services/api.service.js";
+import { getCity } from "./services/data.service.js";
 
 const saveToken = async (token) => {
   if (!token.length) {
@@ -18,10 +19,28 @@ const saveToken = async (token) => {
   }
 }
 
+
+const saveCity = async (city) => {
+  if (!city.length) {
+    printError('Не передан город')
+    return;
+  }
+
+  try {
+    await saveKeyValue(DICTIONARY.city, city)
+    printSuccess('Город сохранен')
+  } catch (error) {
+    printError(error.message)
+  }
+
+}
+
 const getForecast = async () => {
   try {
-    const weather = await getWeather('asdasdasdasds');
-    console.log(weather);
+    const city = await getCity()
+    const weather = await getWeather(city);
+
+    printWeather(weather, getIcon(weather.weather[0].icon));
   } catch (error) {
     if (error?.response?.status === 404 || error?.response?.status === 400) {
       printError('Неверно указан город')
@@ -34,21 +53,21 @@ const getForecast = async () => {
 }
 
 const initCLI = () => {
-  const args = getArgs(process.argv)
+  const args = getArgs(process.argv);
 
   if (args.h) {
-    printHelp()
+    return printHelp();
   }
 
   if (args.s) {
-
+    return saveCity(args.s);
   }
 
   if (args.t) {
-    return saveToken(args.t)
+    return saveToken(args.t);
   }
 
-  getForecast()
+  return getForecast();
 }
 
 initCLI();

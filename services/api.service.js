@@ -1,16 +1,5 @@
-import {DICTIONARY, getKeyValue} from "./storage.service.js";
 import axios from "axios";
-import {printError} from "./log.service.js";
-
-const getToken = async () => {
-  const token = await getKeyValue(DICTIONARY.token);
-
-  if (!token) {
-    throw new Error('Не задан ключ API, задайте есть через команду -t [API_KEY]')
-  }
-
-  return token
-}
+import {getToken} from "./data.service.js";
 
 export const getWeather = async (city) => {
   const token = await getToken();
@@ -29,7 +18,30 @@ export const getWeather = async (city) => {
   return data;
 }
 
-export const getCoordinate = async (city) => {
+export const getIcon = (icon) => {
+  switch (icon.slice(0, -1)) {
+    case '01':
+      return '☀️';
+    case '02':
+      return '🌤️';
+    case '03':
+      return '☁️';
+    case '04':
+      return '☁️';
+    case '09':
+      return '🌧️';
+    case '10':
+      return '🌦️';
+    case '11':
+      return '🌩️';
+    case '13':
+      return '❄️';
+    case '50':
+      return '🌫️';
+  }
+};
+
+const getCoordinate = async (city) => {
   const token = await getToken();
 
   const { data } =  await axios.get('http://api.openweathermap.org/geo/1.0/direct', {
@@ -40,10 +52,7 @@ export const getCoordinate = async (city) => {
   })
 
   if (!data.length) {
-    return {
-      lat: undefined,
-      lon: undefined
-    }
+    throw new Error('Неверно указан город')
   }
 
   return {
